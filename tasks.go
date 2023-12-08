@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"net/http"
 )
 
@@ -53,7 +53,9 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	w.Write(resp)
+	if _, err := w.Write(resp); err != nil {
+		log.Printf("Error on writing response: %w", err.Error())
+	}
 }
 
 func createTask(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +99,9 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	if _, err := w.Write(resp); err != nil {
+		log.Printf("Error on writing response: %w", err.Error())
+	}
 }
 
 func deleteTask(w http.ResponseWriter, r *http.Request) {
@@ -124,11 +128,14 @@ func main() {
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`<html><A href="/tasks/">Click to get all Tasks</A></html>`))
+		_, err := w.Write([]byte(`<html><A href="/tasks/">Click to get all Tasks</A></html>`))
+		if err != nil {
+			log.Printf("Error on writing response: %w", err.Error())
+		}
 	})
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
-		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
+		log.Fatalf("Ошибка при запуске сервера: %w", err.Error())
 		return
 	}
 }
